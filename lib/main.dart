@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:js' as js;
 
 import 'package:flutter/material.dart';
+import 'package:lifecycle/lifecycle.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +53,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // You can pass jsVariables to the widget tree if needed
     return MaterialApp(
+      navigatorObservers: [
+        defaultLifecycleObserver
+      ],
       title: 'Flutter Web with JS Variables',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -62,31 +66,21 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// Login Screen
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key, required this.jsVariables});
 
   final JavaScriptVariables jsVariables;
 
-  void _handleLogin() {
-    debugPrint('Login button pressed');
-    // Implement your login logic here
-  }
-
-  void _handleForgotPassword() {
-    debugPrint('Forgot Password pressed');
-    // Implement your forgot password logic here
-  }
-
-  void _handleSignUp() {
-    debugPrint('Sign Up pressed');
-    // Implement your sign up logic here
-  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100], // Added a subtle background color
+    return LifecycleWrapper(
+        onLifecycleEvent: (event) {
+          debugPrint('🔵 Lifecycle Event: $event');
+      debugPrint(event.toString());
+    },
+    child:Scaffold(
+      backgroundColor: Colors.grey[100],
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -139,7 +133,7 @@ class LoginScreen extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _handleLogin,
+                        onPressed: () {},
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
@@ -154,12 +148,12 @@ class LoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     TextButton(
-                      onPressed: _handleForgotPassword,
+                      onPressed: () {},
                       child: const Text('Forgot Password?'),
                     ),
                     const Divider(height: 32),
                     TextButton(
-                      onPressed: _handleSignUp,
+                      onPressed: () {},
                       child: const Text("Don't have an account? Sign Up"),
                     ),
                   ],
@@ -169,6 +163,7 @@ class LoginScreen extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }
