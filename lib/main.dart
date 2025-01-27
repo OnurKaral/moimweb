@@ -1,25 +1,25 @@
-import 'dart:developer';
+import 'dart:developer' as developer;
 import 'dart:js' as js;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:lifecycle/lifecycle.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  final jsVariables = fetchJavaScriptVariables();
-  runApp(MyApp(jsVariables: jsVariables));
+  runApp(MyApp(jsVariables: fetchJavaScriptVariables()));
 }
 
-/// A simple class to hold JavaScript variables
 class JavaScriptVariables {
   final String? token;
   final String? msisdn;
 
-  JavaScriptVariables({this.token, this.msisdn});
+  const JavaScriptVariables({this.token, this.msisdn});
 }
 
-/// Fetch JavaScript Variables
 JavaScriptVariables fetchJavaScriptVariables() {
+  if (!kIsWeb) return const JavaScriptVariables();
+
   try {
     final token =
         js.context.hasProperty('token') ? js.context['token'] as String? : null;
@@ -28,22 +28,20 @@ JavaScriptVariables fetchJavaScriptVariables() {
         : null;
 
     if (token != null && msisdn != null) {
-      log('WEB PAGE LOG 🔗 API URL: $msisdn');
-      log('WEB PAGE LOG 🔑 Token: $token');
       debugPrint(
-          '✅ JavaScript Variables Found:\n🔑 Token: $token\n🔗 API URL: $msisdn');
+        '✅ JavaScript Variables Found:\n🔑 Token: $token\n🔗 msisdn: $msisdn',
+      );
     } else {
       debugPrint('⚠️ JavaScript variables "token" or "msisdn" not found.');
     }
 
     return JavaScriptVariables(token: token, msisdn: msisdn);
   } catch (e, stackTrace) {
-    log('❌ Error accessing JavaScript variables: $e', stackTrace: stackTrace);
-    return JavaScriptVariables();
+    debugPrint('❌ Error accessing JavaScript variables: $e\n$stackTrace');
+    return const JavaScriptVariables();
   }
 }
 
-/// Flutter App
 class MyApp extends StatelessWidget {
   final JavaScriptVariables jsVariables;
 
@@ -51,119 +49,193 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // You can pass jsVariables to the widget tree if needed
     return MaterialApp(
-      navigatorObservers: [
-        defaultLifecycleObserver
-      ],
+      navigatorObservers: [defaultLifecycleObserver],
       title: 'Flutter Web with JS Variables',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: LoginScreen(jsVariables: jsVariables),
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: StepRewardsScreen(jsVariables: jsVariables),
     );
   }
 }
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key, required this.jsVariables});
-
+class StepRewardsScreen extends StatelessWidget {
   final JavaScriptVariables jsVariables;
 
+  const StepRewardsScreen({super.key, required this.jsVariables});
 
   @override
   Widget build(BuildContext context) {
     return LifecycleWrapper(
-        onLifecycleEvent: (event) {
-          debugPrint('🔵 Lifecycle Event: $event');
-      debugPrint(event.toString());
-    },
-    child:Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 8,
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const FlutterLogo(size: 100),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Login',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    TextField(
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        hintText: jsVariables.token ?? 'Enter your email',
-                        prefixIcon: const Icon(Icons.email),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        hintText: jsVariables.msisdn ?? 'Enter your password',
-                        prefixIcon: const Icon(Icons.lock),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Login',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text('Forgot Password?'),
-                    ),
-                    const Divider(height: 32),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text("Don't have an account? Sign Up"),
-                    ),
-                  ],
-                ),
-              ),
+      onLifecycleEvent: (event) => debugPrint('🔵 Lifecycle Event: $event'),
+      child: Scaffold(
+        appBar: kIsWeb
+            ? AppBar(
+                backgroundColor: Colors.teal,
+                centerTitle: true,
+                title: const Text('Kazandıran Adımlar'),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () =>  {
+                      debugPrint('🟢 Close button pressed.'),
+
+                    },
+                  ),
+                ],
+              )
+            : null,
+        backgroundColor: Colors.grey[100],
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: const _RewardCard(),
             ),
           ),
         ),
       ),
-    ),
+    );
+  }
+}
+
+class _RewardCard extends StatelessWidget {
+  const _RewardCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 8,
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.info, color: Colors.orange),
+                SizedBox(width: 8),
+                Text(
+                  'Kazandıran Adımlar',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Center(
+              child: Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey, width: 4),
+                ),
+                child: const Center(
+                  child: Text(
+                    '1\nAdım',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Kalan Süre',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              '6 Gün 23 Saat 2 Dakika',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: const LinearProgressIndicator(
+                    value: 1 / 7, // Example progress
+                    backgroundColor: Colors.grey,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.indigo),
+                    minHeight: 8,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('1. Gün'),
+                    Text('7. Gün'),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Card(
+              color: Colors.blueGrey.shade50,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: _RewardInfo(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RewardInfo extends StatelessWidget {
+  const _RewardInfo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Günlük 3 GB',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        const Row(
+          children: [
+            Icon(Icons.directions_walk, color: Colors.orange),
+            SizedBox(width: 8),
+            Text(
+              '30.000 Adım',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          '29.999 adım daha atmanız gerekiyor.',
+          style: TextStyle(fontSize: 14),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: null, // disabled example
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Ödülü Al', style: TextStyle(fontSize: 16)),
+          ),
+        ),
+      ],
     );
   }
 }
