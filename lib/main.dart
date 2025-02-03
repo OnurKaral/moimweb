@@ -79,8 +79,8 @@ class StepRewardsScreen extends StatelessWidget {
                     icon: const Icon(Icons.close),
                     onPressed: () =>  {
                       debugPrint('🟢 Close button pressed.'),
-
-                    },
+                      js.context.callMethod('flutterWebViewCallback', ['close'])
+                  },
                   ),
                 ],
               )
@@ -99,6 +99,8 @@ class StepRewardsScreen extends StatelessWidget {
     );
   }
 }
+
+
 
 class _RewardCard extends StatelessWidget {
   const _RewardCard();
